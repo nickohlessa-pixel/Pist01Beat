@@ -41,8 +41,27 @@ class Pist01Beat:
             "Safe placeholder for future engines."
         )
 
-        result = PredictionResult(
+        return PredictionResult(
             engine_version=self.version,
             home_team=home_team,
             away_team=away_team,
-            model_spread=model_sp
+            model_spread=model_spread,
+            model_total=model_total,
+            confidence=confidence,
+            volatility_flag=volatility_flag,
+            notes=notes,
+        ).to_dict()
+
+
+def _demo() -> None:
+    """Runs when executing: python main.py"""
+    model = Pist01Beat()
+    result = model.predict("HOR", "DEN")
+
+    print("✅ Pist01Beat scaffold demo ran successfully — V2 test.")
+    print("Prediction result:")
+    print(result)
+
+
+if __name__ == "__main__":
+    _demo()
