@@ -1,56 +1,117 @@
-"""
-Pist01 Beat v3.4 — SIMPLE SCAFFOLD
+# FILE: main.py
 
-This is a temporary, no-folders, no-dependencies version of the engine.
-Goal: make sure the repo runs cleanly in Colab with zero import headaches.
+from __future__ import annotations
+from dataclasses import dataclass, asdict
+from typing import Dict, Any
 
-Later, we can expand this into multiple files and folders.
-For now: one file, one class, one predict() method.
-"""
+
+@dataclass
+class PredictionResult:
+    """
+    Simple container for a Pist01Beat prediction.
+    This is a scaffold only — real logic will be plugged in later.
+    """
+    engine_version: str
+    home_team: str
+    away_team: str
+    model_spread: float
+    model_total: float
+    confidence: str
+    volatility_flag: str
+    notes: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Return the prediction as a plain dictionary."""
+        return asdict(self)
 
 
 class Pist01Beat:
     """
-    Ultra-simple scaffold version of the Pist01 Beat engine.
+    Pist01Beat — minimal single-file scaffold for the full model.
 
-    - Does NOT use real model logic yet.
-    - Exists ONLY so you can:
-        * clone the repo
-        * run main.py
-        * import Pist01Beat in Colab
+    This version is intentionally dumb and deterministic so that:
+      - You can verify wiring in Colab / local Python.
+      - You can later swap in real engines without changing the interface.
+
+    Usage:
+        model = Pist01Beat()
+        result = model.predict("HOR", "DEN")
+        print(result)
     """
 
-    def __init__(self, version: str = "3.4-scaffold"):
+    def __init__(self, version: str = "3.4-scaffold") -> None:
+        """
+        Initialize the Pist01Beat scaffold.
+
+        Args:
+            version: Optional engine version string for tracking.
+        """
         self.version = version
 
-    def predict(self, home_team: str, away_team: str) -> dict:
+    def predict(self, home_team: str, away_team: str) -> Dict[str, Any]:
         """
-        Dummy prediction method.
+        Return a stub prediction for the given matchup.
 
-        For now, this just returns a static dictionary with the teams you pass in.
-        Once the filesystem is stable, we’ll replace this with real model logic.
+        This is a NO-DATA, NO-NBA-LOGIC placeholder:
+        - It always uses the same numbers.
+        - It only exists to prove the plumbing works.
+
+        Args:
+            home_team: Short code or name for the home team.
+            away_team: Short code or name for the away team.
+
+        Returns:
+            A dictionary with the required fields, suitable for future expansion.
         """
-        return {
-            "engine_version": self.version,
-            "home_team": home_team,
-            "away_team": away_team,
-            "model_spread": 0.0,
-            "model_total": 220.0,
-            "confidence": "low",
-            "volatility_flag": "scaffold_only",
-            "notes": "Pist01 Beat is wired and runnable. Engines not yet connected.",
-        }
+        # In the real engine, these would come from the full Model Brain stack.
+        # For now, keep it ultra-simple and deterministic.
+        model_spread = -3.5  # "Home favored by 3.5" — arbitrary placeholder
+        model_total = 225.0  # Arbitrary placeholder game total
+
+        # Confidence and volatility are simple placeholders for now.
+        confidence = "medium"
+        volatility_flag = "normal"
+
+        # Notes field can carry debug info or human-readable commentary.
+        notes = (
+            "Scaffold prediction only. "
+            "No real NBA data, no live model logic. "
+            "Safe to replace with full engine later."
+        )
+
+        result = PredictionResult(
+            engine_version=self.version,
+            home_team=home_team,
+            away_team=away_team,
+            model_spread=model_spread,
+            model_total=model_total,
+            confidence=confidence,
+            volatility_flag=volatility_flag,
+            notes=notes,
+        )
+
+        # The caller expects a plain dictionary per the rules.
+        return result.to_dict()
 
 
-def _demo():
+def _demo() -> None:
     """
-    Simple demo that runs when you execute:  python main.py
-    """
-    engine = Pist01Beat()
-    result = engine.predict("HOR", "DEN")
+    Run a simple demo of the Pist01Beat scaffold.
 
-    print("✅ Pist01 Beat scaffold is working.")
-    print("Here is a sample prediction object:\n")
+    This is what executes when you run:
+        python main.py
+
+    It should:
+      - create a Pist01Beat instance
+      - call .predict("HOR", "DEN")
+      - print a friendly success line
+      - print the result dict
+    """
+    model = Pist01Beat()
+    result = model.predict("HOR", "DEN")
+
+    print("✅ Pist01Beat scaffold demo ran successfully.")
+    print("Prediction result:")
     print(result)
 
 
