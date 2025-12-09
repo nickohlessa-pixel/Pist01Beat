@@ -2,58 +2,58 @@
 """
 Pist01 Beat v3.4 — High-level wrapper.
 
-This is the single entrypoint:
+Single public entrypoint:
+
     from pist01beat import Pist01Beat
 
-It delegates the full pipeline to IntegrationEngine, which is
-responsible for calling the underlying engines and returning
-the final spread/total output.
+This wrapper delegates the full pipeline to IntegrationEngine,
+which is responsible for calling all underlying engines and
+returning the final spread/total output.
 """
 
 from typing import Any, Dict
 
-from .identity_engine import IdentityEngine
-from .chaos_engine import ChaosEngine
-from .volatility_engine import VolatilityEngine
 from .integration_engine import IntegrationEngine
 
 
 class Pist01Beat:
     """
-    High-level v3.4 model wrapper.
+    High-level Pist01 Beat v3.4 wrapper.
     """
 
     def __init__(self) -> None:
-        # Expose engines in case you ever want them directly
-        self.identity_engine = IdentityEngine()
-        self.chaos_engine = ChaosEngine()
-        self.volatility_engine = VolatilityEngine()
-
-        # Orchestration layer that runs the full pipeline
-        # (must already know how to call the engines above)
+        # Orchestration layer that runs the full pipeline.
+        # IntegrationEngine is expected to call the underlying
+        # engines (identity, chaos, volatility, etc.) internally.
         self.integration_engine = IntegrationEngine()
 
     def predict(self, home_team: str, away_team: str) -> Dict[str, Any]:
         """
         Run the full v3.4 pipeline for a matchup.
 
-        Must return a dict with at least:
+        Returns a dict with at least:
         - engine_version
         - home_team
         - away_team
         - model_spread
         - model_total
-        plus any debug payload from the engines.
+        plus any engine/debug payload.
         """
         result = self.integration_engine.run(home_team, away_team)
 
-        # Sanity guard against old bootstrap artifacts
-        if result.get("engine_version") == "3.4-wrapper-bootstrap":
-            raise RuntimeError("Bootstrap wrapper is still being returned somewhere in the stack.")
+        # Hard guard against any leftover bootstrap wiring.
+        version = str(result.get("engine_version", ""))
+        if "wrapper-bootstrap" in version:
+            raise RuntimeError(
+                "Bootstrap wrapper output detected; integration is still returning a placeholder."
+            )
 
-        if "debug" in result and isinstance(result["debug"], dict):
-            note = result["debug"].get("note", "")
-            if isinstance(note, str) and "Bootstrap placeholder" in note:
-                raise RuntimeError("Bootstrap debug note detected; integration is not using real engines.")
+        debug = result.get("debug")
+        if isinstance(debug, dict):
+            note = str(debug.get("note", ""))
+            if "Bootstrap placeholder" in note:
+                raise RuntimeError(
+                    "Bootstrap placeholder debug note detected; engines are not wired correctly."
+                )
 
         return result
