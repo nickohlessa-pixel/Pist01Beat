@@ -1,25 +1,16 @@
-# FILE: pist01beat/integration_engine.py
 """
-Integration Engine v3.4 — MINIMAL WIRING LAYER
+IntegrationEngine v3.4 — minimal unified state builder.
 
-This module glues together the verified core engines:
+This engine:
+- Normalizes and validates team codes
+- Calls IdentityEngine, ChaosEngine, and VolatilityEngine
+- Bundles their raw outputs into a single integrated_state dict
 
-- IdentityEngine   → baseline matchup identity (any return type)
-- ChaosEngine      → chaos info (any return type)
-- VolatilityEngine → volatility info (any return type)
-
-This version is intentionally minimal:
-- It does NOT inspect fields.
-- It does NOT call .get() or assume dicts.
-- It simply calls the engines and packages their raw outputs
-  into a single unified state dict.
-
-Goal: be impossible to break due to return-type changes.
+Pist01Beat.predict() calls IntegrationEngine.run(), which is a thin wrapper
+around compute_state(). Spread/total layering can be added later.
 """
 
-from __future__ import annotations
-
-from typing import Any, Dict, Optional
+from typing import Dict, Any, Optional
 
 from .identity_engine import IdentityEngine
 from .chaos_engine import ChaosEngine
@@ -27,33 +18,16 @@ from .volatility_engine import VolatilityEngine
 
 
 class IntegrationEngine:
-    """
-    Minimal Integration Engine v3.4
+    """Orchestrates the core engines into a unified matchup state."""
 
-    Responsibilities:
-    - Own instances of IdentityEngine, ChaosEngine, VolatilityEngine.
-    - Run them in a consistent order for a given matchup.
-    - Return a single unified state dict containing their *raw* outputs.
+    ENGINE_VERSION: str = "3.4-integration-minimal"
 
-    This engine does NOT:
-    - Interpret fields
-    - Make betting decisions
-    - Depend on any particular return type from the engines
-    """
+    def __init__(self) -> None:
+        self.identity_engine = IdentityEngine()
+        self.chaos_engine = ChaosEngine()
+        self.volatility_engine = VolatilityEngine()
 
-    ENGINE_VERSION = "3.4-integration-minimal"
-
-    def __init__(
-        self,
-        identity_engine: Optional[IdentityEngine] = None,
-        chaos_engine: Optional[ChaosEngine] = None,
-        volatility_engine: Optional[VolatilityEngine] = None,
-    ) -> None:
-        self.identity_engine = identity_engine or IdentityEngine()
-        self.chaos_engine = chaos_engine or ChaosEngine()
-        self.volatility_engine = volatility_engine or VolatilityEngine()
-
-    def compute_integrated_state(
+    def compute_state(
         self,
         home_team: str,
         away_team: str,
@@ -102,7 +76,6 @@ class IntegrationEngine:
             away_team=away_team,
         )
 
-        # Unified state: just bundle raw outputs.
         integrated_state: Dict[str, Any] = {
             "engine_version": self.ENGINE_VERSION,
             "home_team": home_team,
@@ -119,29 +92,16 @@ class IntegrationEngine:
 
         return integrated_state
 
+    def run(
+        self,
+        home_team: str,
+        away_team: str,
+        notes: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Public entrypoint used by Pist01Beat.predict().
 
-def compute_integrated_state(
-    home_team: str,
-    away_team: str,
-    notes: Optional[str] = None,
-) -> Dict[str, Any]:
-    """
-    Convenience wrapper so callers can do:
-
-        from pist01beat.integration_engine import compute_integrated_state
-        state = compute_integrated_state("HOR", "DEN")
-    """
-    engine = IntegrationEngine()
-    return engine.compute_integrated_state(
-        home_team=home_team,
-        away_team=away_team,
-        notes=notes,
-    )
-
-
-if __name__ == "__main__":
-    # Simple smoke test / example usage.
-    from pprint import pprint
-
-    demo = compute_integrated_state("HOR", "DEN")
-    pprint(demo)
+        For now this just returns the unified engine state. Later we can
+        layer derived fields (model_spread, model_total, etc.) on top.
+        """
+        return self.compute_state(home_team=home_team, away_team=away_team, notes=notes)
