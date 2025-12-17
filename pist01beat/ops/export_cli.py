@@ -21,6 +21,12 @@ try:
 except Exception:
     _detect_repo_root = None
 
+# best-effort bundle guard (warnings only)
+try:
+    from pist01beat.ops.export_bundle_guard import check_bundle_shape as _check_bundle_shape  # type: ignore
+except Exception:
+    _check_bundle_shape = None
+
 
 def _json_dumps_deterministic(obj: Any) -> str:
     return json.dumps(
@@ -184,6 +190,17 @@ def build_audited_export() -> dict:
     out["stamp"] = stamp_obj
     out["cli_warnings"] = cli_warnings
     out["version"] = EXPORT_CLI_VERSION
+
+    # Postflight: audited bundle shape guard (non-fatal, warnings only)
+    if _check_bundle_shape is None:
+        cli_warnings.append("bundle_guard_missing")
+    else:
+        try:
+            gw = _check_bundle_shape(out)
+            if isinstance(gw, list) and len(gw) > 0:
+                cli_warnings.extend([str(x) for x in gw])
+        except Exception:
+            cli_warnings.append("bundle_guard_failed")
     return out
 
 
