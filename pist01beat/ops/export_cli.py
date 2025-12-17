@@ -15,6 +15,11 @@ from typing import Any, Dict, List, Optional
 
 
 EXPORT_CLI_VERSION = "export_cli_v1_readonly"
+# best-effort repo guard (warnings only)
+try:
+    from pist01beat.ops.repo_guard import detect_repo_root as _detect_repo_root  # type: ignore
+except Exception:
+    _detect_repo_root = None
 
 
 def _json_dumps_deterministic(obj: Any) -> str:
@@ -63,6 +68,18 @@ def build_audited_export() -> dict:
     Deterministic: stable key ordering when serialized.
     """
     cli_warnings: List[str] = []
+
+    # Preflight: repo layout guard (non-fatal, warnings only)
+    if _detect_repo_root is None:
+        cli_warnings.append("repo_guard_missing")
+    else:
+        try:
+            info = _detect_repo_root(".")
+            w = info.get("warnings") if isinstance(info, dict) else None
+            if isinstance(w, list) and len(w) > 0:
+                cli_warnings.append("repo_layout_invalid")
+        except Exception:
+            cli_warnings.append("repo_layout_invalid")
 
     build_model_export = None
     validate_export = None
