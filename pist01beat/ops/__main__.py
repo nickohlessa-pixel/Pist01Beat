@@ -32,6 +32,7 @@ Usage:
 
 Commands:
   preflight
+  index
     Run read-only environment + repo fingerprint preflight.
 
   repo-snapshot
@@ -42,6 +43,8 @@ Examples:
   python -m pist01beat.ops preflight --json --pretty
   python -m pist01beat.ops repo-snapshot
   python -m pist01beat.ops repo-snapshot --json --pretty
+  python -m pist01beat.ops index
+  python -m pist01beat.ops index --json --pretty
 
 Notes:
   - This dispatcher is infrastructure-only and read-only.
@@ -67,6 +70,10 @@ def main(argv: List[str] | None = None) -> int:
     if cmd in ("repo-snapshot", "repo_snapshot"):
         from pist01beat.ops.repo_snapshot_cli import main as _snap_main
         return int(_snap_main(sub_argv))
+
+    if cmd == "index":
+        from pist01beat.ops.ops_index_cli import main as _index_main
+        return int(_index_main(sub_argv))
 
     if cmd == "version":
         print(OPS_DISPATCH_VERSION)
