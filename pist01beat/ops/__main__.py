@@ -81,6 +81,11 @@ def main(argv: List[str] | None = None) -> int:
         from pist01beat.ops.ops_selftest_cli import main as _selftest_main
         return int(_selftest_main(sub_argv))
 
+
+    if cmd == "edge-slots-validate":
+        from pist01beat.ops.edge_slots_validate_cli import main as _edge_slots_validate_main
+        return int(_edge_slots_validate_main(sub_argv))
+
     if cmd == "version":
         print(OPS_DISPATCH_VERSION)
         return 0
